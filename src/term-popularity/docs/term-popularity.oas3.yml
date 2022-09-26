@@ -1,0 +1,82 @@
+openapi: 3.0.0
+info:
+  title: Term popularity
+  version: 1.0.0
+servers:
+  - url: http://term-popularity.loc
+    description: Api
+paths:
+  /score/github/{term}:
+    get:
+      summary: Get the popularity of a given term
+      operationId: getGithubScore
+      parameters:
+        - name: term
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          $ref: '#/components/schemas/ScoreResponse'
+        '400':
+          $ref: '#/score/BadRequest'
+        '500':
+          $ref: '#/score/ServerError'
+components:
+  schemas:
+    Score:
+      type: array
+      required:
+        - score
+        - provider
+        - term
+      properties:
+        score:
+          type: number
+          description: Score of the popularity
+        provider:
+          type: string
+          minLength: 1
+          description: A name of the provider
+          example: "Github"
+        term:
+          type: string
+          description: Еhe term for popularity estimation
+          minLength: 1
+          example: "test"
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        message:
+          type: string
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+  responses:
+    ScoreResponse:
+      description: A score of the term
+      content:
+        application/json:
+          schema:
+            type: array
+            items: { $ref: '#/components/schemas/Score' }
+    BadRequest:
+      description: Incoming request was malformed
+      content:
+        application/json:
+          schema:
+            type: array
+            items: { $ref: '#/components/schemas/Error' }
+    ServerError:
+      description: There was a problem with the server
+      content:
+        application/json:
+          schema:
+            type: array
+            items: { $ref: '#/components/schemas/Error' }
