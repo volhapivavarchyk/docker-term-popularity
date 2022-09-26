@@ -1,0 +1,52 @@
+version: "3.7"
+
+services:
+    web:
+        image: nginx:latest
+        container_name: web
+        ports:
+            - "80:80"
+        volumes:
+            - ./src:/var/www/html
+            - ./docker/nginx/site.conf:/etc/nginx/conf.d/site.conf
+        links:
+            - php
+    php:
+        build: ./docker/php
+        container_name: php
+        volumes:
+            - ./src:/var/www/html
+            - ./docker/php/log.conf:/usr/local/etc/php-fpm.d/zz-log.conf
+            - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+        environment:
+            DB_DRIVER: $DB_DRIVER
+            DB_HOST: $DB_HOST
+            DB_PORT: $DB_PORT
+            DB_USER: $DB_USER
+            DB_PASSWORD: $DB_PASSWORD
+            DB_NAME: $DB_NAME
+        links:
+            - db
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        ports:
+            - "8090:80"
+        links:
+            - db
+        environment:
+            PMA_HOST: db
+    db:
+        image: mysql:8.0.20
+        container_name: db
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./docker/mysql/:/var/lib/mysql/
+        environment:
+            MYSQL_ROOT_PASSWORD: $DB_ROOT_PASSWORD
+            MYSQL_DATABASE: $DB_NAME
+            MYSQL_USER: $DB_USER
+            MYSQL_PASSWORD: $DB_PASSWORD
+            MYSQL_ROOT_HOST: $ROOT_HOST
+        restart: always
